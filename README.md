@@ -1,58 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# BrickLivros - Sistema de Gestão de Bibliotecas
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+O BrickLivros é um sistema web desenvolvido para modernizar e simplificar a gestão de bibliotecas. Ele automatiza o catálogo de livros, o controle de empréstimos, devoluções e o cálculo de multas por atraso, oferecendo painéis personalizados tanto para os bibliotecários quanto para os leitores.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funcionalidades Principais
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* Controle de Acesso (RBAC): Níveis de usuário distintos (Bibliotecário e Cliente/Leitor).
+* Catálogo Inteligente: Visualização do acervo com controle dinâmico de estoque disponível.
+* Gestão de Empréstimos e Devoluções: Sistema ágil para registrar saídas e entradas de livros.
+* Cálculo Automático de Multas: O sistema calcula multas em tempo real com base na data de devolução estipulada.
+* Dashboard Interativo: Painel focado na experiência do usuário (UX), mostrando contagem regressiva de dias para devolução.
+* Geração de Relatórios: Exportação de relatórios de empréstimos em formato PDF.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Tecnologias Utilizadas
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* Backend: PHP 8+ e Laravel
+* Frontend: HTML5, CSS3 puro e Laravel Blade
+* Banco de Dados: MySQL
+* Servidor Local Recomendado: Laragon ou XAMPP
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Como rodar o projeto localmente
 
-## Agentic Development
+Siga o passo a passo abaixo para clonar e rodar o BrickLivros na sua máquina.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Pré-requisitos
+Certifique-se de ter instalado em sua máquina:
+* PHP (Versão 8.0 ou superior)
+* Composer (Gerenciador de dependências do PHP)
+* MySQL (Pode usar o embutido no Laragon/XAMPP)
+* Git
 
+### 2. Clonando o Repositório
+Abra o seu terminal e rode o comando:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone [https://github.com/guikts/bricklivros.git](https://github.com/guikts/bricklivros.git)
+```
+### 3. Instalando as Dependências
+```bash
+cd bricklivros
+composer install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 4. Configurando o ambiente (.env)
+Copie o arquivo de exemplo
+```bash
+cp .env.example .env
+```
 
-## Contributing
+Gere a chave de segurança do sistema
+```bash
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 5. Crie o Banco de Dados pelo MySQL ou pelo terminal:
+```sql
+CREATE DATABASE bricklivros;
+```
+### 6. Configurando a Conexão (.env)
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bricklivros
+DB_USERNAME=root
+DB_PASSWORD=
+```
+### 7. Execute as Migrations
 
-## Code of Conduct
+```bash
+php artisan migrate
+```
+### 8. Rodando a Aplicação
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php atisan serve
+```
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
