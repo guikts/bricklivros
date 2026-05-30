@@ -37,15 +37,38 @@ class EmprestimoController extends Controller
 
     public function devolver($id)
     {
-        $emprestimo = Emprestimo::find($id);
+        $emprestimo = \App\Models\Emprestimo::findOrFail($id);
         
-        if (!$emprestimo->data_devolucao) {
-            $emprestimo->update(['data_devolucao' => date('Y-m-d')]); 
-            
-            $livro = Livro::find($emprestimo->livro_id);
+        $hoje = strtotime(date('Y-m-d'));
+        $limite = strtotime($emprestimo->data_limite_devolucao);
+
+        $valor_multa = 0;
+        $status = 'sem_multa';
+
+        if ($hoje > $limite) {
+            $dias_atraso = ($hoje - $limite) / 86400;
+
+            $valor_multa = $dias_atraso * 2.00;
+            $status = 'pendente';
+        }
+
+        $emprestimo->update([
+        'data_devolucao' => date('Y-m-d'),
+        'valor_multa' => $valor_multa,
+        'status_multa' => $status
+        ]);
+
+        $livro = \App\Models\Livro::find($emprestimo->livro_id);
+        if ($livro) {
             $livro->increment('exemplares_disponiveis');
         }
-        return back();
+
+        if ($valor_multa > 0){
+            $mensagem = "Livro devolvido! Atenção: Foi gerada uma multa de" . number_format($valor_multa, 2, ',', '.') . " por " . $dias_atraso . "dia(s) de atraso";
+            return back() ->with('erro', mensagem);
+        }
+
+        return back()->with('sucesso', 'Livro devolvido com sucesso!');
     }
 
     public function gerarRelatorioPdf()
