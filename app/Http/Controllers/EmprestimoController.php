@@ -35,41 +35,41 @@ class EmprestimoController extends Controller
         return back(); 
     }
 
-    public function devolver($id)
-    {
-        $emprestimo = \App\Models\Emprestimo::findOrFail($id);
-        
-        $hoje = strtotime(date('Y-m-d'));
-        $limite = strtotime($emprestimo->data_limite_devolucao);
+  public function devolver($id)
+{
+    $emprestimo = \App\Models\Emprestimo::findOrFail($id);
+    
+    $hoje = strtotime(date('Y-m-d'));
+    $limite = strtotime($emprestimo->data_limite_devolucao);
 
-        $valor_multa = 0;
-        $status = 'sem_multa';
+    $valor_multa = 0;
+    $status = 'sem_multa';
 
-        if ($hoje > $limite) {
-            $dias_atraso = ($hoje - $limite) / 86400;
+    if ($hoje > $limite) {
+        $dias_atraso = ($hoje - $limite) / 86400;
 
-            $valor_multa = $dias_atraso * 2.00;
-            $status = 'pendente';
-        }
+        $valor_multa = $dias_atraso * 2.00;
+        $status = 'pendente';
+    }
 
-        $emprestimo->update([
+    $emprestimo->update([
         'data_devolucao' => date('Y-m-d'),
         'valor_multa' => $valor_multa,
         'status_multa' => $status
-        ]);
+    ]);
 
-        $livro = \App\Models\Livro::find($emprestimo->livro_id);
-        if ($livro) {
-            $livro->increment('exemplares_disponiveis');
-        }
-
-        if ($valor_multa > 0){
-            $mensagem = "Livro devolvido! Atenção: Foi gerada uma multa de" . number_format($valor_multa, 2, ',', '.') . " por " . $dias_atraso . "dia(s) de atraso";
-            return back() ->with('erro', mensagem);
-        }
-
-        return back()->with('sucesso', 'Livro devolvido com sucesso!');
+    $livro = \App\Models\Livro::find($emprestimo->livro_id);
+    if ($livro) {
+        $livro->increment('exemplares_disponiveis');
     }
+
+    if ($valor_multa > 0){
+        $mensagem = "Livro devolvido! Atenção: Foi gerada uma multa de R$ " . number_format($valor_multa, 2, ',', '.') . " por " . $dias_atraso . " dia(s) de atraso.";
+        return back()->with('erro', $mensagem);
+    }
+
+    return back()->with('sucesso', 'Livro devolvido com sucesso!');
+}
 
     public function gerarRelatorioPdf()
     {

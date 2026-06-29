@@ -9,18 +9,17 @@
 <body>
     <div class="container">
         
+        <header class="topbar">
+            <div style="display: flex; align-items: center;">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo BrickLivros" style="height: 150px; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
+            </div>
+            <div class="user-info">
+                <span>Olá, <strong>{{ Auth::user()->name }}</strong> (ID: {{ Auth::user()->id }})</span>
+                <a href="/sair" class="btn btn-danger">Sair</a>
+            </div>
+        </header>
 
-<header class="topbar">
-    <div style="display: flex; align-items: center;">
-        <img src="{{ asset('img/logo.png') }}" alt="Logo BrickLivros" style="height: 150px; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
-    </div>
-    <div class="user-info">
-        <span>Olá, <strong>{{ Auth::user()->name }}</strong> (ID: {{ Auth::user()->id }})</span>
-        <a href="/sair" class="btn btn-danger">Sair</a>
-    </div>
-</header>
-
-        <!-- Alertas -->
+        <!-- Alertas Inteligentes (Sucesso e Erro da Multa) -->
         @if(session('sucesso')) 
             <div class="card" style="background-color: #d4edda; border-left: 5px solid var(--success); color: #155724; padding: 15px;">
                 ✅ {{ session('sucesso') }}
@@ -31,16 +30,13 @@
                 ❌ {{ session('erro') }}
             </div> 
         @endif
-
         
         <div class="text-center" style="margin-bottom: 40px;">
             <a href="/livros" class="btn btn-primary btn-lg">Acessar Catálogo de Livros ➔</a>
         </div>
 
-        <!--Bibliotecario-->
-        
+        <!-- Visão do Bibliotecario -->
         @if(Auth::user()->role === 'bibliotecario')
-            
             
             <div class="card" style="background-color: var(--primary); color: white;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
@@ -52,7 +48,6 @@
                 </div>
             </div>
 
-            
             <div class="card">
                 <h3 class="card-title" style="color: var(--success);">📥 Realizar Novo Empréstimo</h3>
                 
@@ -97,9 +92,11 @@
             </div>
 
             <div class="card">
-                <h3 class="card-title">📋 Empréstimos Ativos</h3>
+                <!-- Título atualizado para mostrar que agora é um Histórico também -->
+                <h3 class="card-title">📋 Controle de Empréstimos (Histórico e Ativos)</h3>
                 @php
-                    $emprestimos_gerais = \App\Models\Emprestimo::whereNull('data_devolucao')->get();
+                    // Mudamos a query para trazer TODOS, ordenados do mais recente pro mais antigo
+                    $emprestimos_gerais = \App\Models\Emprestimo::orderBy('id', 'desc')->get();
                 @endphp
 
                 <div class="table-responsive">
@@ -110,6 +107,9 @@
                                 <th>Livro</th>
                                 <th>Leitor</th>
                                 <th>Vencimento</th>
+                                <th>Devolução</th>
+                                <th>Multa</th>
+                                <th>Status</th>
                                 <th class="text-center">Ações Rápidas</th>
                             </tr>
                         </thead>
@@ -121,27 +121,61 @@
                                     <td>{{ \App\Models\User::find($emp->user_id)->name ?? 'Excluído' }}</td>
                                     <td style="color: var(--danger); font-weight: bold;">{{ date('d/m/Y', strtotime($emp->data_limite_devolucao)) }}</td>
                                     
+                                    <!-- Nova Coluna: Devolução -->
                                     <td>
-                                        <div class="action-buttons" style="justify-content: center;">
-                                            <form action="/devolver-form" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="emprestimo_id" value="{{ $emp->id }}">
-                                                <button type="submit" class="btn btn-warning">⬇️ Devolver</button>
-                                            </form>
+                                        @if($emp->data_devolucao)
+                                            <span style="color: var(--success); font-weight: bold;">{{ date('d/m/Y', strtotime($emp->data_devolucao)) }}</span>
+                                        @else
+                                            <span style="color: #f39c12; font-weight: bold;">Pendente</span>
+                                        @endif
+                                    </td>
 
-                                            <form action="/emprestimos/renovar/{{ $emp->id }}" method="POST" class="action-buttons">
-                                                @csrf
-                                                <input type="number" name="dias_adicionais" value="7" min="1" class="form-control" style="width: 70px; padding: 8px;">
-                                                <button type="submit" class="btn btn-info">🔄 Renovar</button>
-                                            </form>
-                                        </div>
+                                    <!-- Nova Coluna: Valor da Multa -->
+                                    <td>
+                                        @if($emp->valor_multa > 0)
+                                            <span style="color: var(--danger); font-weight: bold;">R$ {{ number_format($emp->valor_multa, 2, ',', '.') }}</span>
+                                        @else
+                                            <span style="color: #888;">-</span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Nova Coluna: Status da Multa -->
+                                    <td>
+                                        @if($emp->status_multa == 'pendente')
+                                            <span style="background-color: var(--danger); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">Multado</span>
+                                        @elseif($emp->status_multa == 'sem_multa' && $emp->data_devolucao)
+                                            <span style="background-color: var(--success); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">No Prazo</span>
+                                        @else
+                                            <span style="background-color: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">Em Aberto</span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Coluna: Ações Rápidas -->
+                                    <td>
+                                        @if(!$emp->data_devolucao)
+                                            <div class="action-buttons" style="justify-content: center;">
+                                                <!-- Link atualizado para bater com a rota do Controller -->
+                                                <form action="/emprestimos/devolver/{{ $emp->id }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-warning">⬇️ Devolver</button>
+                                                </form>
+
+                                                <form action="/emprestimos/renovar/{{ $emp->id }}" method="POST" class="action-buttons">
+                                                    @csrf
+                                                    <input type="number" name="dias_adicionais" value="7" min="1" class="form-control" style="width: 70px; padding: 8px;">
+                                                    <button type="submit" class="btn btn-info">🔄 Renovar</button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            <div class="text-center" style="color: #888; font-size: 0.9em;">Concluído</div>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
                             @if($emprestimos_gerais->isEmpty())
                                 <tr>
-                                    <td colspan="5" class="text-center" style="padding: 30px; color: var(--text-muted);">
-                                        Nenhum livro fora da biblioteca no momento. Tudo em ordem! ✨
+                                    <td colspan="8" class="text-center" style="padding: 30px; color: var(--text-muted);">
+                                        Nenhum empréstimo registrado ainda. ✨
                                     </td>
                                 </tr>
                             @endif
@@ -150,8 +184,7 @@
                 </div>
             </div>
 
-            <!--Bibliotecario-->  
-              
+        <!-- Visão do Cliente/Leitor (Mantida Exatamente Igual) -->  
         @else
             
             <div class="card text-center" style="padding: 40px;">
