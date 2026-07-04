@@ -25,7 +25,7 @@ class EmprestimoController extends Controller
         $dias = $request->dias_emprestimo ?? 14; 
 
         Emprestimo::create([
-            'user_id' => $leitor->id,
+            'user_id' =>$leitor -> id,
             'livro_id' => $livro->id,
             'data_emprestimo' => date('Y-m-d'),
             'data_limite_devolucao' => date('Y-m-d', strtotime("+$dias days")), 
